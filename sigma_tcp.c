@@ -235,28 +235,37 @@ int main(int argc, char *argv[])
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_flags = AI_PASSIVE;
 
-	ret = getaddrinfo(NULL, "8086", &hints, &servinfo);
-    if (ret != 0) {
+	if ((ret = getaddrinfo(NULL, "8086", &hints, &servinfo)) != 0) {
         fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(ret));
         return 1;
     }
 
     for (p = servinfo; p != NULL; p = p->ai_next) {
-        if ((sockfd = socket(p->ai_family, p->ai_socktype,
-                p->ai_protocol)) == -1) {
+        sockfd = socket(p->ai_family, p->ai_socktype,
+                        p->ai_protocol);
+        if (sockfd == -1) {
             perror("server: socket");
             continue;
         }
 
-        if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &reuse,
-                sizeof(int)) == -1) {
-            perror("setsockopt");
-            exit(1);
+        if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR,
+                       &reuse, sizeof(reuse)) == -1) {
+            perror("setsockopt SO_REUSEADDR");
+            close(sockfd);
+            continue;
+        }
+
+        if (p->ai_family == AF_INET6) {
+            int off = 0;
+            if (setsockopt(sockfd, IPPROTO_IPV6,
+                           IPV6_V6ONLY, &off, sizeof(off)) == -1) {
+                perror("setsockopt IPV6_V6ONLY");
+            }
         }
 
         if (bind(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
-            close(sockfd);
             perror("server: bind");
+            close(sockfd);
             continue;
         }
 
