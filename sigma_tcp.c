@@ -231,41 +231,32 @@ int main(int argc, char *argv[])
 	}
 
     memset(&hints, 0, sizeof hints);
-    hints.ai_family = AF_UNSPEC;
+    hints.ai_family = AF_INET;
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_flags = AI_PASSIVE;
 
-	if ((ret = getaddrinfo(NULL, "8086", &hints, &servinfo)) != 0) {
+	ret = getaddrinfo(NULL, "8086", &hints, &servinfo);
+    if (ret != 0) {
         fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(ret));
         return 1;
     }
 
     for (p = servinfo; p != NULL; p = p->ai_next) {
-        sockfd = socket(p->ai_family, p->ai_socktype,
-                        p->ai_protocol);
-        if (sockfd == -1) {
+        if ((sockfd = socket(p->ai_family, p->ai_socktype,
+                p->ai_protocol)) == -1) {
             perror("server: socket");
             continue;
         }
 
-        if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR,
-                       &reuse, sizeof(reuse)) == -1) {
-            perror("setsockopt SO_REUSEADDR");
-            close(sockfd);
-            continue;
-        }
-
-        if (p->ai_family == AF_INET6) {
-            int off = 0;
-            if (setsockopt(sockfd, IPPROTO_IPV6,
-                           IPV6_V6ONLY, &off, sizeof(off)) == -1) {
-                perror("setsockopt IPV6_V6ONLY");
-            }
+        if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &reuse,
+                sizeof(int)) == -1) {
+            perror("setsockopt");
+            exit(1);
         }
 
         if (bind(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
-            perror("server: bind");
             close(sockfd);
+            perror("server: bind");
             continue;
         }
 
