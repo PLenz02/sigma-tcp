@@ -150,7 +150,7 @@ static void handle_connection(int client)
    if (buf_size < len + 8) {
     size_t new_size = len + 8;
     if (buf_size != new_size) {
-     fprintf(stderr, "DEBUG realloc: len = %u, new buf_size = %zu, count = %u\n",
+     fprintf(stderr, "DEBUG realloc: len = %u, new buf_size = %zu, count = %zd\n",
              len, new_size, count);
      fprintf(stderr, "BEFORE realloc: buf = %p\n", buf);
      
