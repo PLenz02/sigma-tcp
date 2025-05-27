@@ -129,76 +129,60 @@ static void *get_in_addr(struct sockaddr *sa)
 	return &(((struct sockaddr_in6*)sa)->sin6_addr);
 }
 
-static void handle_connection(int fd)
+static void handle_connection(int client)
 {
-	uint8_t *buf;
-	size_t buf_size;
-	uint8_t *p;
-	unsigned int len;
-	unsigned int addr;
-/*	unsigned int total_len;*/
-	int count, ret;
-	char command;
+ uint8_t *buf = NULL;
+ size_t buf_size = 0;
+ ssize_t count;
+ uint8_t header[8];
 
-	count = 0;
+ while (1) {
+  // 1. Lese Header
+  count = recv(client, header, sizeof(header), MSG_WAITALL);
+  if (count <= 0)
+   break;
 
-	buf_size = 256;
-	buf = malloc(buf_size);
-	if (!buf)
-		goto exit;
+  // 2. Extrahiere Länge
+  uint32_t len = header[4] | (header[5] << 8) | (header[6] << 16) | (header[7] << 24);
+  
+  // 3. Speichervergrößerung prüfen
+  if (count < len + 8) {
+   if (buf_size < len + 8) {
+    size_t new_size = len + 8;
+    if (buf_size != new_size) {
+     fprintf(stderr, "DEBUG realloc: len = %u, new buf_size = %zu, count = %u\n",
+             len, new_size, count);
+     fprintf(stderr, "BEFORE realloc: buf = %p\n", buf);
+     
+     void *tmp = realloc(buf, new_size);
+     if (!tmp) {
+      fprintf(stderr, "ERROR: realloc failed for size %zu\n", new_size);
+      goto exit;
+     }
+     buf = tmp;
+     buf_size = new_size;
 
-	p = buf;
+     fprintf(stderr, "AFTER realloc: new buf = %p\n", buf);
+    }
+   }
+  }
 
-	while (1) {
-		memmove(buf, p, count);
-		p = buf + count;
+  // 4. Kopiere Header in Puffer
+  memcpy(buf, header, 8);
 
-		ret = read(fd, p, buf_size - count);
-		if (ret <= 0)
-			break;
+  // 5. Lese restliche Nutzdaten
+  count = recv(client, buf + 8, len, MSG_WAITALL);
+  if (count <= 0)
+   break;
 
-		p = buf;
-
-		count += ret;
-
-		while (count >= 7) {
-			command = p[0];
-/*			total_len = (p[1] << 8) | p[2];*/
-			len = (p[4] << 8) | p[5];
-			addr = (p[6] << 8) | p[7];
-
-			if (command == COMMAND_READ) {
-				p += 8;
-				count -= 8;
-
-				buf[0] = COMMAND_WRITE;
-				buf[1] = (0x4 + len) >> 8;
-				buf[2] = (0x4 + len) & 0xff;
-				buf[3] = backend_ops->read(addr, len, buf + 4);
-				write(fd, buf, 4 + len);
-			} else {
-				/* not enough data, fetch next bytes */
-				if (count < len + 8) {
-					if (buf_size < len + 8) {
-						buf_size = len + 8;
-						fprintf(stderr, "DEBUG realloc: len = %u, buf_size = %zu, count = %u\n",
-								len, buf_size, count);
-						buf = realloc(buf, buf_size);
-						fprintf(stderr, "DEBUG realloc done: success, new buf = %p\n", buf);
-						if (!buf)
-							goto exit;
-					}
-					break;
-				}
-				backend_ops->write(addr, len, p + 8);
-				p += len + 8;
-				count -= len + 8;
-			}
-		}
-	}
+  // 6. Übergib an das Backend
+  if (backend_ops && backend_ops->write)
+   backend_ops->write(buf[0], len, buf + 8);
+ }
 
 exit:
-	free(buf);
+ free(buf);
+ close(client);
 }
 
 int main(int argc, char *argv[])
