@@ -181,7 +181,10 @@ static void handle_connection(int fd)
 				if (count < len + 8) {
 					if (buf_size < len + 8) {
 						buf_size = len + 8;
+						fprintf(stderr, "DEBUG realloc: len = %d, buf_size = %d, count = %d\n",
+								len, buf_size, count);
 						buf = realloc(buf, buf_size);
+						fprintf(stderr, "DEBUG realloc done: success, new buf = %p\n", buf);
 						if (!buf)
 							goto exit;
 					}
