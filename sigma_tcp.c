@@ -29,6 +29,8 @@
 #include <netinet/if_ether.h>
 #include <sys/ioctl.h>
 
+#define MAX_ALLOWED_LEN (64 * 1024)
+
 static void addr_to_str(const struct sockaddr *sa, char *s, size_t maxlen)
 {
 	switch(sa->sa_family) {
