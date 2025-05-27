@@ -144,6 +144,12 @@ static void handle_connection(int client)
 
   // 2. Extrahiere Länge
   uint32_t len = header[4] | (header[5] << 8) | (header[6] << 16) | (header[7] << 24);
+
+  if (len > MAX_ALLOWED_LEN) {
+	fprintf(stderr, "ERROR: Received length %u exceeds maximum allowed length %d\n",
+			len, MAX_ALLOWED_LEN);
+	goto exit;
+  }
   
   // 3. Speichervergrößerung prüfen
   if (count < len + 8) {
