@@ -22,6 +22,21 @@
 static int i2c_fd;
 static int i2c_dev_addr;
 
+static void print_i2c_xfer(struct i2c_rdwr_ioctl_data *xfer)
+{
+	for (int i= 0; i < xfer->nmsgs; i++) {
+		struct i2c_msg *m = &xfer->msgs[i];
+		printf("xfer [%d]: addr=0x%02x, flags=0x%04x, len=%d\n", i, m->addr, m->flags, m->len);
+		if (m->buf && !(m->flags & I2C_M_RD)) {
+			printf("  buf:");
+			for (int j = 0; j < m->len; j++) {
+				printf(" %02x", m->buf[j]);
+			}
+			printf("\n");
+		}
+	}
+}
+
 static int i2c_open(int argc, char *argv[])
 {
 	int ret;
@@ -108,17 +123,4 @@ const struct backend_ops i2c_backend_ops = {
 	.write = i2c_write,
 };
 
-static void print_i2c_xfer(struct i2c_rdwr_ioctl_data *xfer)
-{
-	for (int i= 0; i < xfer->nmsgs; i++) {
-		struct i2c_msg *m = &xfer->msgs[i];
-		printf("xfer [%d]: addr=0x%02x, flags=0x%04x, len=%d\n", i, m->addr, m->flags, m->len);
-		if (m->buf && !(m->flags & I2C_M_RD)) {
-			printf("  buf:");
-			for (int j = 0; j < m->len; j++) {
-				printf(" %02x", m->buf[j]);
-			}
-			printf("\n");
-		}
-	}
-}
+
