@@ -75,7 +75,8 @@ static int i2c_read(unsigned int addr, unsigned int len, uint8_t *data)
 	msg[1].flags = I2C_M_RD;
 	msg[1].buf = data;
 	msg[1].len = len;
-
+	
+	print_i2c_xfer(&xfer);
 	return ioctl(i2c_fd, I2C_RDWR, &xfer);
 }
 
@@ -97,6 +98,7 @@ static int i2c_write(unsigned int addr, unsigned int len, const uint8_t *data)
 	msg[0].buf = msg_buf;
 	msg[0].len = len + 2;
 
+	print_i2c_xfer(&xfer);
 	return ioctl(i2c_fd, I2C_RDWR, &xfer);
 }
 
@@ -105,3 +107,18 @@ const struct backend_ops i2c_backend_ops = {
 	.read = i2c_read,
 	.write = i2c_write,
 };
+
+static void print_i2c_xfer(struct i2c_ioctl_data *xfer)
+{
+	for (int i= 0; i < xfer->nmsgs; i++) {
+		struct i2c_msg *m = &xfer->msgs[i];
+		printf("xfer [%d]: addr=0x%02x, flags=0x%04x, len=%d\n", i, m->addr, m->flags, m->len);
+		if (m->buf && !(m->flags & I2C_M_RD)) {
+			printf("  buf:");
+			for (int j = 0; j < m->len; j++) {
+				printf(" %02x", m->buf[j]);
+			}
+			printf("\n");
+		}
+	}
+}
