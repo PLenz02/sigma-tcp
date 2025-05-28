@@ -4,8 +4,8 @@ CC = aarch64-linux-gnu-gcc
 
 CFLAGS += -O2 -Wall -Werror -pedantic -std=gnu99 -Wno-unused-result --static
 
-sigma_tcp: i2c.c regmap.c bioson_backend.c
-sigma_tcp: sigma_tcp.c
+sigma_tcp: sigma_tcp.c i2c.c regmap.c
+bioson_backend.c
 	$(CC) $(CFLAGS) -o $@ $^
 
 install:
