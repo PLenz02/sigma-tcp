@@ -75,7 +75,7 @@ static int i2c_read(unsigned int addr, unsigned int len, uint8_t *data)
 	msg[1].flags = I2C_M_RD;
 	msg[1].buf = data;
 	msg[1].len = len;
-	
+
 	print_i2c_xfer(&xfer);
 	return ioctl(i2c_fd, I2C_RDWR, &xfer);
 }
@@ -108,7 +108,7 @@ const struct backend_ops i2c_backend_ops = {
 	.write = i2c_write,
 };
 
-static void print_i2c_xfer(struct i2c_ioctl_data *xfer)
+static void print_i2c_xfer(struct i2c_rdwr_ioctl_data *xfer)
 {
 	for (int i= 0; i < xfer->nmsgs; i++) {
 		struct i2c_msg *m = &xfer->msgs[i];
