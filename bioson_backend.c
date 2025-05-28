@@ -41,11 +41,6 @@ static int bioson_write(unsigned int reg, unsigned int len, const uint8_t *data)
     return bioson_send_cmd(cmd);
 }
 
-const struct backend_ops i2c_backend_ops = {
-	.open = i2c_open,
-	.read = i2c_read,
-	.write = i2c_write,
-};
 
 const struct backend_ops bioson_backend_ops = {
 	.open = bioson_open,
