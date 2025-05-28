@@ -1,6 +1,6 @@
 DESTDIR=/usr/local
 
-CC = aaarch64-linux-gnu-gcc
+CC = aarch64-linux-gnu-gcc
 
 CFLAGS += -O2 -Wall -Werror -pedantic -std=gnu99 -Wno-unused-result --static
 
