@@ -29,6 +29,10 @@
 #include <netinet/if_ether.h>
 #include <sys/ioctl.h>
 
+extern int bioson_open(int argc, char *argv[]);
+extern int bioson_read(unsigned int, unsigned int, uint8_t *);
+extern int bioson_write(unsigned int, unsigned int, const uint8_t *);
+
 static void addr_to_str(const struct sockaddr *sa, char *s, size_t maxlen)
 {
 	switch(sa->sa_family) {
@@ -213,6 +217,10 @@ int main(int argc, char *argv[])
 			backend_ops = &debug_backend_ops;
 		else if (strcmp(argv[1], "i2c") == 0)
 			backend_ops = &i2c_backend_ops;
+		else if (strcmp(argv[1], "bioson") == 0) {
+			backend_ops = &bioson_backend_ops;
+			ret = bioson_open(argc, argv);
+		}
 		else if (strcmp(argv[1], "regmap") == 0)
 			backend_ops = &regmap_backend_ops;
 		else {
