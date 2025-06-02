@@ -57,13 +57,14 @@ static int i2c_open(int argc, char *argv[])
 	uint8_t reg = 0x02; // Version register
 	uint8_t version;
 	unsigned int len = 1;
+	int ret_val;
 	ret_val = i2c_read(reg, len, &version);
 	if (ret_val < 0) {
 		perror("i2c: Failed to read version register");
 		return 1;
 	}
 	printf("i2c: Device version: 0x%02x\n", version);
-	
+
 	return 0;
 }
 
