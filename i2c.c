@@ -54,16 +54,16 @@ static int i2c_open(int argc, char *argv[])
 
 	printf("i2c: Initalized for device %s-%x\n", argv[2], i2c_dev_addr);
 
-	uint8_t reg = 0x02; // Version register
-	uint8_t version;
-	unsigned int len = 1;
+	uint8_t reg = 0x0002; // Version register
+	uint8_t version[6];
+	unsigned int len = 6;
 	int ret_val;
-	ret_val = i2c_read(reg, len, &version);
+	ret_val = i2c_read(reg, len, version);
 	if (ret_val < 0) {
 		perror("i2c: Failed to read version register");
 		return 1;
 	}
-	printf("i2c: Device version: 0x%02x\n", version);
+	printf("i2c: Device version: 0x%02x\n", version[0]);
 
 	return 0;
 }
