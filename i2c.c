@@ -24,7 +24,21 @@ static int i2c_dev_addr;
 
 static int i2c_read(unsigned int addr, unsigned int len, uint8_t *data);
 
-int i2c_read_id(unsigned char slave_addr, unsigned char reg, unsigned char *result) {
+static int i2c_read_id_simple(int i2c_fd, unsigned char reg){
+
+	unsigned char buf[3];
+	buf[0] = reg;
+	/* Using I2C Read, equivalent of i2c_smbus_read_byte(file) */
+	if (read(i2c_fd, buf, 1) != 1) {
+		perror("i2c: Failed to read from device");
+		return -1;
+	} else {
+		printf("i2c: Read from device: 0x%02x\n", buf[0]);
+		return 0;
+	}
+}
+
+static int i2c_read_id(unsigned char slave_addr, unsigned char reg, unsigned char *result) {
 	unsigned char outbuf[1], inbuf[1];
 	struct i2c_msg msgs[2];
 	struct i2c_rdwr_ioctl_data msgset[1];
@@ -88,6 +102,7 @@ static int i2c_open(int argc, char *argv[])
 
 	unsigned char result;
 	int ret_val;
+	i2c_read_id_simple(i2c_fd, 0x02);
 	ret_val = i2c_read_id(i2c_dev_addr, 0x02, &result);
 	if (ret_val < 0) {
 		perror("i2c: Failed to read version register");
