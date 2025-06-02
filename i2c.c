@@ -24,6 +24,39 @@ static int i2c_dev_addr;
 
 static int i2c_read(unsigned int addr, unsigned int len, uint8_t *data);
 
+int i2c_read_id(unsigned char slave_addr, unsigned char reg, unsigned char *result) {
+	int retval;
+	u8 outbuf[1], inbuf[1];
+	struct i2c_msg msgs[2];
+	struct i2c_rdwr_ioctl_data msgset[1];
+
+	msgs[0].addr = slave_addr;
+	msgs[0].flags = 0;
+	msgs[0].len = 1;
+	msgs[0].buf = outbuf;
+
+	msgs[1].addr = slave_addr;
+	msgs[1].flags = I2C_M_RD | I2C_M_NOSTART;
+	msgs[1].len = 1;
+	msgs[1].buf = inbuf;
+
+	msgset[0].msgs = msgs;
+	msgset[0].nmsgs = 2;
+
+	outbuf[0] = reg;
+
+	inbuf[0] = 0;
+
+	*result = 0;
+	if (ioctl(i2c_fd, I2C_RDWR, &msgset) < 0) {
+		perror("ioctl(I2C_RDWR) in i2c_read");
+		return -1;
+	}
+
+	*result = inbuf[0];
+	return 0;
+}
+
 static int i2c_open(int argc, char *argv[])
 {
 	int ret;
@@ -54,16 +87,14 @@ static int i2c_open(int argc, char *argv[])
 
 	printf("i2c: Initalized for device %s-%x\n", argv[2], i2c_dev_addr);
 
-	uint8_t reg = 0x02; // Version register
-	uint8_t version;
-	unsigned int len = 1;
+	unsigned char result;
 	int ret_val;
-	ret_val = i2c_read(reg, len, &version);
+	ret_val = i2c_read_id(i2c_dev_addr, 0x02, &result);
 	if (ret_val < 0) {
 		perror("i2c: Failed to read version register");
 		return 1;
 	}
-	printf("i2c: Device version: 0x%02x\n", version);
+	printf("i2c: Device version: 0x%02x\n", result);
 
 	return 0;
 }
