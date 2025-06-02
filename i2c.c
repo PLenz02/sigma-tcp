@@ -26,7 +26,7 @@ static int i2c_read(unsigned int addr, unsigned int len, uint8_t *data);
 
 int i2c_read_id(unsigned char slave_addr, unsigned char reg, unsigned char *result) {
 	int retval;
-	u8 outbuf[1], inbuf[1];
+	unsigned char outbuf[1], inbuf[1];
 	struct i2c_msg msgs[2];
 	struct i2c_rdwr_ioctl_data msgset[1];
 
