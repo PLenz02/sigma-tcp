@@ -54,8 +54,8 @@ static int i2c_open(int argc, char *argv[])
 
 	printf("i2c: Initalized for device %s-%x\n", argv[2], i2c_dev_addr);
 	uint8_t data[2];
-	int ret = i2c_read(i2c_dev_addr, 2, data);
-	if (ret < 0) {
+	int ret_val = i2c_read(i2c_dev_addr, 2, data);
+	if (ret_val < 0) {
 		perror("i2c: Failed to read from device");
 		return 1;
 	}
